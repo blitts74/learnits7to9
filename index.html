@@ -1,3 +1,6 @@
+Here is the full updated code, with sound priming added in the right place so iOS/Safari is more willing to play the sounds. You can copy–paste this whole thing into your index.html on GitHub (or your local file).
+
+xml
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -197,12 +200,12 @@
     </div>
 
     <!-- Simple audio feedback -->
-   <audio id="sound-correct">
-  <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_d73218d0ae.mp3" type="audio/mpeg">
-</audio>
-<audio id="sound-wrong">
-  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4e5e70c95e.mp3" type="audio/mpeg">
-</audio>
+    <audio id="sound-correct">
+      <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_d73218d0ae.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-wrong">
+      <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4e5e70c95e.mp3" type="audio/mpeg">
+    </audio>
   </div>
 
   <script>
@@ -211,7 +214,6 @@
     function generateQuestions() {
       const questions = [];
 
-      // Helper to add a multiplication question object
       function addMultQuestion(a, b) {
         const displayReversed = Math.random() < 0.5;
         const left = displayReversed ? b : a;
@@ -222,7 +224,6 @@
         });
       }
 
-      // Helper to add an addition question object, possibly reversed
       function addAddQuestion(a, b) {
         const displayReversed = Math.random() < 0.5;
         const left = displayReversed ? b : a;
@@ -233,7 +234,6 @@
         });
       }
 
-      // 10, 5, 2 times tables (1–10) – 10 questions from each
       const tables = [10, 5, 2];
       tables.forEach(table => {
         const nums = [1,2,3,4,5,6,7,8,9,10];
@@ -241,7 +241,6 @@
         nums.slice(0, 10).forEach(n => addMultQuestion(table, n));
       });
 
-      // Required addition facts (16 questions), each can be reversed when displayed
       const adds = [
         [7,4], [8,3], [8,4], [9,3],
         [9,4], [5,4], [8,7], [5,6],
@@ -250,7 +249,6 @@
       ];
       adds.forEach(pair => addAddQuestion(pair[0], pair[1]));
 
-      // We now have 46 questions. Shuffle overall order.
       shuffleArray(questions);
       return questions;
     }
@@ -263,7 +261,7 @@
     }
 
     // ------- Quiz state --------
-    const TOTAL_TIME = 120; // 2 minutes in seconds
+    const TOTAL_TIME = 120;
     let questions = [];
     let currentIndex = 0;
     let score = 0;
@@ -272,7 +270,7 @@
     let answerBuffer = "";
     let quizStartTime = null;
     let questionStartTime = null;
-    const answersLog = []; // { index, question, correctAnswer, userAnswer, correct, timeTaken }
+    const answersLog = [];
 
     // ------- DOM elements --------
     const startScreen = document.getElementById("start-screen");
@@ -425,21 +423,27 @@
         return;
       }
 
-      // numeric key
       const digit = btn.textContent.trim();
       if (!/^\d$/.test(digit)) return;
-      // keep answers sensible, e.g. max 3 digits
       if (answerBuffer.length >= 3) return;
       if (answerBuffer === "0") {
-        answerBuffer = digit; // replace leading zero
+        answerBuffer = digit;
       } else {
         answerBuffer += digit;
       }
       answerDisplay.textContent = answerBuffer;
     });
 
-    // ------- Start / restart --------
+    // ------- Start / restart (with audio priming) --------
     startBtn.addEventListener("click", () => {
+      // Prime audio on first tap for iOS
+      try {
+        correctSound.play();
+        correctSound.pause();
+        wrongSound.play();
+        wrongSound.pause();
+      } catch (e) {}
+
       questions = generateQuestions();
       currentIndex = 0;
       score = 0;
@@ -452,6 +456,14 @@
     });
 
     restartBtn.addEventListener("click", () => {
+      // Prime audio again just in case
+      try {
+        correctSound.play();
+        correctSound.pause();
+        wrongSound.play();
+        wrongSound.pause();
+      } catch (e) {}
+
       questions = generateQuestions();
       currentIndex = 0;
       score = 0;
