@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Learn Its Steps 7–9</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
+    #app {
+      background: white;
+      max-width: 600px;
+      width: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-top: 0;
+    }
+    #status-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+    #timer {
+      font-weight: 600;
+      color: #c62828;
+    }
+    #question-box {
+      text-align: center;
+      margin: 16px 0;
+    }
+    #question-text {
+      font-size: 2rem;
+      margin: 12px 0;
+    }
+    #answer-display {
+      font-size: 1.6rem;
+      min-height: 2.2rem;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin: 0 auto;
+      display: inline-block;
+      min-width: 100px;
+      text-align: center;
+    }
+    #message {
+      height: 1.4rem;
+      font-size: 0.9rem;
+      margin-top: 4px;
+      color: #555;
+    }
+    #keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .key {
+      padding: 14px 0;
+      font-size: 1.4rem;
+      border-radius: 8px;
+      border: none;
+      background: #eeeeee;
+      cursor: pointer;
+      user-select: none;
+    }
+    .key:active {
+      background: #d6d6d6;
+    }
+    .key.action {
+      background: #2196f3;
+      color: white;
+      font-size: 1rem;
+    }
+    .key.action:active {
+      background: #1976d2;
+    }
+    #start-screen, #quiz-screen, #summary-screen {
+      display: none;
+    }
+    #summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+    #summary-table th, #summary-table td {
+      border: 1px solid #ddd;
+      padding: 4px;
+      text-align: center;
+    }
+    #summary-table th {
+      background: #f0f0f0;
+    }
+    #big-celebration {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-top: 12px;
+      color: #2e7d32;
+      font-weight: 700;
+    }
+    button.main {
+      padding: 10px 16px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+      margin-top: 8px;
+      display: block;
+      width: 100%;
+    }
+    button.main:active {
+      background: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>Learn Its – Steps 7–9</h1>
+
+    <!-- Start screen -->
+    <div id="start-screen">
+      <p>46 quick‑fire questions in 2 minutes. Try to get them all correct!</p>
+      <button id="start-btn" class="main">Start</button>
+    </div>
+
+    <!-- Quiz screen -->
+    <div id="quiz-screen">
+      <div id="status-bar">
+        <div>Question <span id="q-index">1</span> / 46</div>
+        <div>Score: <span id="score">0</span></div>
+        <div id="timer">02:00</div>
+      </div>
+
+      <div id="question-box">
+        <div id="question-text">2 × 3 = ?</div>
+        <div id="answer-display"></div>
+        <div id="message"></div>
+      </div>
+
+      <!-- Custom number pad; no native keyboard is used -->
+      <div id="keypad">
+        <button class="key">1</button>
+        <button class="key">2</button>
+        <button class="key">3</button>
+        <button class="key">4</button>
+        <button class="key">5</button>
+        <button class="key">6</button>
+        <button class="key">7</button>
+        <button class="key">8</button>
+        <button class="key">9</button>
+        <button class="key action" data-action="clear">⌫</button>
+        <button class="key">0</button>
+        <button class="key action" data-action="enter">↵</button>
+      </div>
+    </div>
+
+    <!-- Summary screen -->
+    <div id="summary-screen">
+      <h2>Results</h2>
+      <p>Score: <span id="final-score"></span> / 46</p>
+      <p>Time used: <span id="time-used"></span> seconds</p>
+      <div id="big-celebration"></div>
+      <h3>Question breakdown</h3>
+      <div style="max-height: 260px; overflow-y: auto;">
+        <table id="summary-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Question</th>
+              <th>Your</th>
+              <th>Correct</th>
+              <th>Time (s)</th>
+            </tr>
+          </thead>
+          <tbody id="summary-body"></tbody>
+        </table>
+      </div>
+      <button id="restart-btn" class="main">Try again</button>
+    </div>
+
+    <!-- Simple audio feedback -->
+    <audio id="sound-correct">
+      <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
+    <audio id="sound-wrong">
+      <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
+  </div>
+
+  <script>
+    // ------- Question generation --------
+
+    function generateQuestions() {
+      const questions = [];
+
+      // Helper to add a multiplication question object
+      function addMultQuestion(a, b) {
+        const displayReversed = Math.random() < 0.5;
+        const left = displayReversed ? b : a;
+        const right = displayReversed ? a : b;
+        questions.push({
+          text: left + " × " + right,
+          answer: a * b
+        });
+      }
+
+      // Helper to add an addition question object, possibly reversed
+      function addAddQuestion(a, b) {
+        const displayReversed = Math.random() < 0.5;
+        const left = displayReversed ? b : a;
+        const right = displayReversed ? a : b;
+        questions.push({
+          text: left + " + " + right,
+          answer: a + b
+        });
+      }
+
+      // 10, 5, 2 times tables (1–10) – 10 questions from each
+      const tables = [10, 5, 2];
+      tables.forEach(table => {
+        const nums = [1,2,3,4,5,6,7,8,9,10];
+        shuffleArray(nums);
+        nums.slice(0, 10).forEach(n => addMultQuestion(table, n));
+      });
+
+      // Required addition facts (16 questions), each can be reversed when displayed
+      const adds = [
+        [7,4], [8,3], [8,4], [9,3],
+        [9,4], [5,4], [8,7], [5,6],
+        [8,9], [6,7], [6,8], [5,9],
+        [5,7], [6,9], [5,8], [7,9]
+      ];
+      adds.forEach(pair => addAddQuestion(pair[0], pair[1]));
+
+      // We now have 46 questions. Shuffle overall order.
+      shuffleArray(questions);
+      return questions;
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    // ------- Quiz state --------
+    const TOTAL_TIME = 120; // 2 minutes in seconds
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer = TOTAL_TIME;
+    let timerInterval = null;
+    let answerBuffer = "";
+    let quizStartTime = null;
+    let questionStartTime = null;
+    const answersLog = []; // { index, question, correctAnswer, userAnswer, correct, timeTaken }
+
+    // ------- DOM elements --------
+    const startScreen = document.getElementById("start-screen");
+    const quizScreen = document.getElementById("quiz-screen");
+    const summaryScreen = document.getElementById("summary-screen");
+    const startBtn = document.getElementById("start-btn");
+    const restartBtn = document.getElementById("restart-btn");
+
+    const qIndexSpan = document.getElementById("q-index");
+    const scoreSpan = document.getElementById("score");
+    const timerSpan = document.getElementById("timer");
+    const questionText = document.getElementById("question-text");
+    const answerDisplay = document.getElementById("answer-display");
+    const messageDiv = document.getElementById("message");
+
+    const finalScoreSpan = document.getElementById("final-score");
+    const timeUsedSpan = document.getElementById("time-used");
+    const summaryBody = document.getElementById("summary-body");
+    const bigCelebration = document.getElementById("big-celebration");
+
+    const correctSound = document.getElementById("sound-correct");
+    const wrongSound = document.getElementById("sound-wrong");
+
+    const keypad = document.getElementById("keypad");
+
+    // ------- Screen control --------
+    function showScreen(name) {
+      startScreen.style.display = name === "start" ? "block" : "none";
+      quizScreen.style.display = name === "quiz" ? "block" : "none";
+      summaryScreen.style.display = name === "summary" ? "block" : "none";
+    }
+
+    // ------- Timer --------
+    function startTimer() {
+      timer = TOTAL_TIME;
+      updateTimerDisplay();
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timer--;
+        updateTimerDisplay();
+        if (timer <= 0) {
+          clearInterval(timerInterval);
+          finishQuiz();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = String(Math.floor(timer / 60)).padStart(2, "0");
+      const s = String(timer % 60).padStart(2, "0");
+      timerSpan.textContent = m + ":" + s;
+    }
+
+    // ------- Question display --------
+    function showCurrentQuestion() {
+      const q = questions[currentIndex];
+      qIndexSpan.textContent = (currentIndex + 1).toString();
+      questionText.textContent = q.text + " = ?";
+      answerBuffer = "";
+      answerDisplay.textContent = "";
+      messageDiv.textContent = "";
+      questionStartTime = performance.now();
+    }
+
+    // ------- Answer handling --------
+    function submitAnswer() {
+      if (currentIndex >= questions.length) return;
+      const q = questions[currentIndex];
+      const userAnswer = answerBuffer.length ? parseInt(answerBuffer, 10) : NaN;
+      const correct = userAnswer === q.answer;
+      const timeTakenSec = ((performance.now() - questionStartTime) / 1000).toFixed(2);
+
+      answersLog.push({
+        index: currentIndex + 1,
+        question: q.text,
+        correctAnswer: q.answer,
+        userAnswer: isNaN(userAnswer) ? "" : userAnswer,
+        correct: correct,
+        timeTaken: parseFloat(timeTakenSec)
+      });
+
+      if (correct) {
+        score++;
+        scoreSpan.textContent = score.toString();
+        messageDiv.textContent = "Correct!";
+        correctSound.currentTime = 0;
+        correctSound.play().catch(() => {});
+      } else {
+        messageDiv.textContent = "Try the next one.";
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(() => {});
+      }
+
+      currentIndex++;
+      if (currentIndex >= questions.length) {
+        finishQuiz();
+      } else {
+        showCurrentQuestion();
+      }
+    }
+
+    function finishQuiz() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      const timeUsed = TOTAL_TIME - timer;
+      showSummary(timeUsed);
+      showScreen("summary");
+    }
+
+    function showSummary(timeUsed) {
+      finalScoreSpan.textContent = score.toString();
+      timeUsedSpan.textContent = timeUsed.toString();
+
+      summaryBody.innerHTML = "";
+      answersLog.forEach(entry => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${entry.index}</td>
+          <td>${entry.question}</td>
+          <td>${entry.userAnswer === "" ? "–" : entry.userAnswer}</td>
+          <td>${entry.correctAnswer}</td>
+          <td>${entry.timeTaken.toFixed(2)}</td>
+        `;
+        tr.style.color = entry.correct ? "#2e7d32" : "#c62828";
+        summaryBody.appendChild(tr);
+      });
+
+      if (score === questions.length && TOTAL_TIME - timer <= TOTAL_TIME) {
+        bigCelebration.textContent = "AMAZING! 46 out of 46 in time 🎉";
+      } else {
+        bigCelebration.textContent = "";
+      }
+    }
+
+    // ------- Keypad logic (no native keyboard) --------
+    keypad.addEventListener("click", (e) => {
+      const btn = e.target.closest(".key");
+      if (!btn) return;
+
+      const action = btn.getAttribute("data-action");
+      if (action === "clear") {
+        answerBuffer = answerBuffer.slice(0, -1);
+        answerDisplay.textContent = answerBuffer;
+        return;
+      }
+      if (action === "enter") {
+        submitAnswer();
+        return;
+      }
+
+      // numeric key
+      const digit = btn.textContent.trim();
+      if (!/^\d$/.test(digit)) return;
+      // keep answers sensible, e.g. max 3 digits
+      if (answerBuffer.length >= 3) return;
+      if (answerBuffer === "0") {
+        answerBuffer = digit; // replace leading zero
+      } else {
+        answerBuffer += digit;
+      }
+      answerDisplay.textContent = answerBuffer;
+    });
+
+    // ------- Start / restart --------
+    startBtn.addEventListener("click", () => {
+      questions = generateQuestions();
+      currentIndex = 0;
+      score = 0;
+      answersLog.length = 0;
+      scoreSpan.textContent = "0";
+      quizStartTime = performance.now();
+      showCurrentQuestion();
+      startTimer();
+      showScreen("quiz");
+    });
+
+    restartBtn.addEventListener("click", () => {
+      questions = generateQuestions();
+      currentIndex = 0;
+      score = 0;
+      answersLog.length = 0;
+      scoreSpan.textContent = "0";
+      quizStartTime = performance.now();
+      showCurrentQuestion();
+      startTimer();
+      showScreen("quiz");
+    });
+
+    // Show start screen initially
+    showScreen("start");
+  </script>
+</body>
+</html>
